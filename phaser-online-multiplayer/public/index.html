@@ -1,1 +1,159 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Online Phaser Multiplayer</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            border: 2px solid white;
+        }
+    </style>
+</head>
+
+<body>
+
+<script>
+
+const socket = io();
+
+class GameScene extends Phaser.Scene {
+
+    constructor() {
+        super("GameScene");
+    }
+
+    create() {
+
+        this.players = {};
+
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        this.infoText = this.add.text(
+            20,
+            20,
+            "Online multiplayer: waiting for players...",
+            {
+                fontSize: "20px",
+                color: "#ffffff"
+            }
+        );
+
+        socket.on("gameFull", () => {
+            this.infoText.setText("Game full. Only 2 players allowed.");
+        });
+
+        socket.on("currentPlayers", (players) => {
+
+            Object.keys(players).forEach((id) => {
+                this.addPlayer(id, players[id]);
+            });
+
+            this.infoText.setText("Use arrow keys to move.");
+        });
+
+        socket.on("newPlayer", (data) => {
+            this.addPlayer(data.id, data.player);
+        });
+
+        socket.on("playerMoved", (data) => {
+
+            if (this.players[data.id]) {
+                this.players[data.id].x = data.x;
+                this.players[data.id].y = data.y;
+            }
+        });
+
+        socket.on("playerDisconnected", (id) => {
+
+            if (this.players[id]) {
+                this.players[id].destroy();
+                delete this.players[id];
+            }
+        });
+    }
+
+    addPlayer(id, playerInfo) {
+
+        const player = this.add.rectangle(
+            playerInfo.x,
+            playerInfo.y,
+            50,
+            50,
+            playerInfo.colour
+        );
+
+        this.players[id] = player;
+    }
+
+    update() {
+
+        const myPlayer = this.players[socket.id];
+
+        if (!myPlayer) {
+            return;
+        }
+
+        const speed = 4;
+        let moved = false;
+
+        if (this.cursors.left.isDown) {
+            myPlayer.x -= speed;
+            moved = true;
+        }
+
+        if (this.cursors.right.isDown) {
+            myPlayer.x += speed;
+            moved = true;
+        }
+
+        if (this.cursors.up.isDown) {
+            myPlayer.y -= speed;
+            moved = true;
+        }
+
+        if (this.cursors.down.isDown) {
+            myPlayer.y += speed;
+            moved = true;
+        }
+
+        myPlayer.x = Phaser.Math.Clamp(myPlayer.x, 25, 775);
+        myPlayer.y = Phaser.Math.Clamp(myPlayer.y, 25, 475);
+
+        if (moved) {
+            socket.emit("playerMovement", {
+                x: myPlayer.x,
+                y: myPlayer.y
+            });
+        }
+    }
+}
+
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 500,
+    backgroundColor: "#222222",
+    scene: GameScene
+};
+
+new Phaser.Game(config);
+
+</script>
+
+</body>
+</html>
