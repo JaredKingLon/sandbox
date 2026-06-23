@@ -602,7 +602,6 @@
         this.load.image("swordpng","https://raw.githubusercontent.com/JaredKingLon/NEA/main/sword.png.png");
         }
 
-
     
         function create() 
         {
@@ -630,6 +629,17 @@
         key = this.input.keyboard.createCursorKeys();
 
         bullets = this.physics.add.group();
+
+        // In-game Phaser score HUD.
+        scoreText = this.add.text(16, 72, 'Score: 0', {
+            fontFamily: 'Arial',
+            fontSize: '24px',
+            color: '#111111',
+            backgroundColor: '#f0edaa',
+            padding: { left: 10, right: 10, top: 6, bottom: 6 }
+        });
+        scoreText.setScrollFactor(0);
+        scoreText.setDepth(20);
 
         /*again will make this into a method later*/
         topHead = this.add.image(gameWidth / 2, gameHeight / 2, "head");
@@ -691,26 +701,15 @@
         }
 
         bodyMovement();
-        
-        // ============================================================================
-        // SEND PLAYER POSITION TO SERVER (Multiplayer Synchronization)
-        // ============================================================================
-        // This code runs every frame (60fps) and sends the player's current position
-        // to the Node.js server via Socket.IO
-        // The server then broadcasts this to the opponent so they can see you move
-        // 
-        // window.socket checks if Socket.IO is loaded and connected globally
-        // playabody checks if the player character has been created yet
+
+        // Send local player position to the server every frame.
         if (window.socket && window.socket.connected && playabody) {
-            // Emit the 'playerMovement' event with current x,y coordinates
-            // The server receives this and updates the player's position
-            // Then broadcasts to opponent: socket.broadcast.emit('playerMoved', ...)
             window.socket.emit('playerMovement', {
-            x: playabody.x,    // Current player X position on the table
-            y: playabody.y     // Current player Y position on the table
+            x: playabody.x,
+            y: playabody.y
             });
         }
-        
+
         player.attachTopToBody(topHead);
         const aimAngle = Phaser.Math.Angle.Between(
             topHead.x,
