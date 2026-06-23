@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <h1> Score Display </h1>
+        <section id="scorebox">
+
+        
+        </section>
+
+
+
+
+
+
+
+
+
+    <script type="module">
+         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const supabaseUrl = 'https://nelcsssoxnlbfrjqvvnp.supabase.co';
+    const supabaseKey = 'sb_publishable_rFSukQnhifkKajWx8iHFdg_fj3cAC8C';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+        async function fetchScores() 
+        {
+            const { data, error } = await supabase
+                .from('NamesAndScores')
+                .select('*')
+                .order('Score', { ascending: false }); /*largest to smallest*/
+
+            if (error) {
+                console.error('Error fetching scores:', error);
+                return;
+            }
+
+            const scoreBox = document.querySelector('#scorebox');
+            scoreBox.innerHTML = '';
+
+            data.forEach((entry) => { /* does this for each item in the table, looping through the table by ID manually was difficult*/
+                const scoreDiv = document.createElement('div'); /*creates a div for each score entry, similar to the notification on index*/
+                scoreDiv.className = 'score-entry'; /*this makes it a score entry, which I added to the css file, wanted something like blooket*/
+                scoreDiv.dataset.player = entry.Names;
+                scoreDiv.innerHTML = /*this is whats inside the div, it shows the name and score for each entry*/
+                ` 
+                    <div class="score-entry-content">
+                        <p class="score-name">Name: ${entry.Names}</p>
+                        <p class="score-value">Score: ${entry.Score}</p>
+                    </div>
+                `
+                ;
+                                scoreBox.appendChild(scoreDiv); /*adds the div to the scorebox section */
+            });
+        }
+
+            function watchScoreTable() {
+                supabase
+                    .channel('score-display-changes')
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'NamesAndScores' },
+                        () => {
+                            fetchScores();
+                        }
+                    )
+                    .subscribe();
+            }
+
+      fetchScores();
+            watchScoreTable();
+
+   
+      
+
+
+        
+    </script>
+
+    </main>
+</body>
+</html>
