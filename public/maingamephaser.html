@@ -1,642 +1,781 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Phaser Game Template</title>
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-      }
-
-      body {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
-        overflow: hidden;
-      }
-
-      #game-shell {
-        position: relative;
-        height: 100vh;
-        min-width: 0;
-        overflow: hidden;
-      }
-
-      #leaderboard {
-            display: flex;
-            flex-direction: column;
-        gap: 12px;
-        padding: 14px;
-        box-sizing: border-box;
-        border-left: 2px solid rgba(0, 0, 0, 0.12);
-        background: rgba(255, 255, 255, 0.25);
-        overflow-y: auto;
-      }
-
-      #timer-hud {
-        position: absolute;
-        left: 16px;
-        top: 16px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 2px solid rgba(0, 0, 0, 0.22);
-        background: rgba(168, 210, 240, 0.92);
-        color: #1b1b1b;
-        font-size: 1.1rem;
-        font-weight: 700;
-        z-index: 12;
-      }
-
-      #player-score-hud {
-        position: absolute;
-        right: 16px;
-        bottom: 16px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 2px solid rgba(0, 0, 0, 0.22);
-        background: rgba(240, 237, 168, 0.92);
-        color: #1b1b1b;
-        font-size: 1.1rem;
-        font-weight: 700;
-        z-index: 12;
-      }
-
-      #leaderboard h2 {
-        margin: 0;
-        text-align: center;
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Phaser Game Template</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
         }
 
-      #leaderboard #scorebox {
-        width: 100%;
-      }
-
-        #game-container {
-        width: 100%;
-        height: 100%;
-        min-width: 0;
-        overflow: hidden;
+        body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            overflow: hidden;
         }
 
-      @media (max-width: 900px) {
-        body {
-          grid-template-columns: 1fr;
-          grid-template-rows: 1fr 36vh;
+        #game-shell {
+            position: relative;
+            height: 100vh;
+            min-width: 0;
+            overflow: hidden;
         }
 
         #leaderboard {
-          border-left: none;
-          border-top: 2px solid rgba(0, 0, 0, 0.12);
+                display: flex;
+                flex-direction: column;
+            gap: 12px;
+            padding: 14px;
+            box-sizing: border-box;
+            border-left: 2px solid rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.25);
+            overflow-y: auto;
         }
 
-        #game-container {
-          height: 100%;
+        #timer-hud {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 0, 0, 0.22);
+            background: rgba(168, 210, 240, 0.92);
+            color: #1b1b1b;
+            font-size: 1.1rem;
+            font-weight: 700;
+            z-index: 12;
         }
 
         #player-score-hud {
-          right: 12px;
-          bottom: 12px;
-        }
-      }
-    </style>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <main id="game-shell">
-      <div id="game-container"></div>
-      <div id="timer-hud">Time: <span id="timer-value">30</span>s</div>
-      <div id="player-score-hud">Score: <span id="player-score-value">0</span></div>
-    </main>
-    <aside id="leaderboard">
-      <h2>Leaderboard</h2>
-      <section id="scorebox"></section>
-    </aside>
-
-    <script type="module">
-      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-      const supabaseUrl = 'https://nelcsssoxnlbfrjqvvnp.supabase.co';
-      const supabaseKey = 'sb_publishable_rFSukQnhifkKajWx8iHFdg_fj3cAC8C';
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const playerNameFromUrl = new URLSearchParams(window.location.search).get('playerName');
-      /*getting the name from when they entered it in the index box I have to use it*/
-      const currentPlayerName = playerNameFromUrl || localStorage.getItem('playerName');
-      if (playerNameFromUrl) {
-        localStorage.setItem('playerName', playerNameFromUrl);
-      }
-      const scoreBox = document.querySelector('#scorebox');
-      const playerScoreValue = document.querySelector('#player-score-value');
-      const timerValue = document.querySelector('#timer-value');
-
-      async function fetchScores() {
-        const { data, error } = await supabase
-          .from('NamesAndScores')
-          .select('*')
-          .order('Score', { ascending: false }); /*get everything from the table and make it so highest score at top*/
-
-        if (error) {
-          console.error('Error fetching scores:', error);
-          return;
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 0, 0, 0.22);
+            background: rgba(240, 237, 168, 0.92);
+            color: #1b1b1b;
+            font-size: 1.1rem;
+            font-weight: 700;
+            z-index: 12;
         }
 
-        scoreBox.innerHTML = ''; /*clears the box so that it doesn't keep adding the same scores over and over again, it clears it and then adds the new ones*/
-
-        data.forEach((entry) => { /*copy and paste from the index but this is for the leaderboard */
-          const scoreDiv = document.createElement('div');
-          scoreDiv.className = 'score-entry';
-          scoreDiv.dataset.player = entry.Names;
-          scoreDiv.innerHTML =
-          `
-            <div class="score-entry-content">
-              <p class="score-name">Name: ${entry.Names}</p>
-              <p class="score-value">Score: ${entry.Score}</p>
-            </div>
-          `;
-          scoreBox.appendChild(scoreDiv);
-        });
-
-        const currentPlayerDiv = scoreBox.querySelector(`.score-entry[data-player="${currentPlayerName}"]`); /*grabs the name from the index page instead of searching in table bc its faster*/
-        if (currentPlayerDiv) { /*this is the current player score box, this line just means if its found */
-          currentPlayerDiv.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
-          currentPlayerDiv.style.fontWeight = '700';
-        }
-      }
-
-      async function increaseTableScoreByAmount(playerName, amount) {
-        if (!playerName) {/*if no name then it wont do anything*/
-          return;
-        }
-
-        const { data: playerRow, error: readError } = await supabase 
-          .from('NamesAndScores')
-          .select('Score')
-          .eq('Names', playerName) /*searches for that 1 entry that has the name of the player whos score is increasing and gets the score from it*/
-          .single(); /*only takes that one*/
-
-        if (readError && readError.code !== 'PGRST116') { /*if theres an error and its not the error for no row found*/
-          return;
-        }
-
-        const currentScore = Number(playerRow?.Score) || 0;
-        const updatedScore = currentScore + amount;
-
-        if (playerRow) { /*if it finds that record*/
-          const { error: updateError } = await supabase
-            .from('NamesAndScores')
-            .update({ Score: updatedScore }) /*make the score the new one*/
-            .eq('Names', playerName);
-
-          if (updateError) { /*all the other errors*/
-            return;
-          }
-        } else {
-          const { error: insertError } = await supabase
-            .from('NamesAndScores')
-            .insert([{ Names: playerName, Score: updatedScore }]);
-
-          if (insertError) {
-            return;
-          }
-        }
-
-        fetchScores(); /*gets the scores again so now we have the actual score*/
-      }
-
-      function watchScoreTable() { /*any change to the table will refresh leaderboard*/
-        supabase
-          .channel('score-table-changes')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'NamesAndScores' },/*any event*/
-            () => {
-              fetchScores(); /*refreshes the leaderboard whenever there's a change in the table*/
+        #leaderboard h2 {
+            margin: 0;
+            text-align: center;
             }
-          )
-          .subscribe();
-      }
 
-      window.increaseTableScore = (amount) => increaseTableScoreByAmount(currentPlayerName, amount); /*put it outside the function so the html elements can see it and use it*/
-
-      fetchScores();
-      watchScoreTable();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
-
-    <script>
-    const gameContainer = document.getElementById('game-container'); /*setting the game dimensions to use them for other stuff*/
-    const gameWidth = Math.max(gameContainer.clientWidth, 320);
-    const gameHeight = Math.max(gameContainer.clientHeight, 320);
-
-
-    const tableWidth = 2 * gameWidth; /*dimensions of the real table, 2x5, so i wanted each segment to be same as the game window*/
-    const tableHeight = gameHeight * 5;
-
-
-    class Player /*doing OOP for the player because its easier to do the upgrades like this*/
-    {
-      constructor(username, health, playerspeed,body){
-        this.username = username;
-        this.health = health;
-        this.playerspeed = playerspeed;
-        this.body = body;
-      
-      }
-
-      attachTopToBody(head) { /*attach the top part of the player to the body because I made the sprite separate for the aiming*/
-        head.x = this.body.x;
-        head.y = this.body.y;
-      }
-
-      pointTopToCursor(head, cursor, worldWidth, worldHeight) { /*this is the aiming part*/
-        const targetX = Phaser.Math.Clamp(cursor.worldX, 0, worldWidth);
-        const targetY = Phaser.Math.Clamp(cursor.worldY, 0, worldHeight);
-        const angle = Phaser.Math.Angle.Between(head.x, head.y, targetX, targetY);
-        head.rotation = angle + Phaser.Math.DegToRad(90);
-      }
-
-      checkHealth() { /*if dead then the player disappears, later on I'll make a death animation and respawn*/
-        if (this.health <= 0) {
-          this.destroy();
-        }
-      }
-    }
-
-
-    class SwordBot extends Player /*inherits alot of the player stuff because its easier*/
-    {
-      constructor(username, health, playerspeed, body, sword)
-      {
-        super(username, health, playerspeed, body); /*what we get from the player*/
-        this.sword = sword;
-        this.swordHoldDistance = 80;
-        this.deflectRadius = 80; /*will use later , controls how far away sword can deflect bullets*/
-      }
-
-      // Keep sword position and rotation synced with the player's current facing angle.
-      updateSwordPose(aimAngle, facingRotation) {
-      
-        this.sword.x = this.body.x + Math.cos(aimAngle) * this.swordHoldDistance; // x position
-        this.sword.y = this.body.y + Math.sin(aimAngle) * this.swordHoldDistance; // y position
-        this.sword.rotation = facingRotation; // rotate the sword to face the direction the player is aiming
-      }
-
-      deflectBullet(currentbullet, sword) 
-      {
-        const angle = sword.rotation - Phaser.Math.DegToRad(90); // because the sprite is straight up by default it needs to be rotated at a right angle
-        currentbullet.fire(angle); /*sends the bullet flying in the direction of the sword, I can imagine changing this because its hard and clunky to deflect */
-      }
-
-      // On click, deflect any nearby bullets away in the sword direction.
-      deflectNearbyBullets(bulletsGroup) {
-        if (!this.sword) {
-          return;
+        #leaderboard #scorebox {
+            width: 100%;
         }
 
-        bulletsGroup.children.iterate((bullet) => {
-          if (bullet && Phaser.Math.Distance.Between(bullet.x, bullet.y, this.sword.x, this.sword.y) < this.deflectRadius) { /*if in range*/
-            this.deflectBullet(bullet, this.sword);
-          }
+            #game-container {
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            overflow: hidden;
+            }
+
+        @media (max-width: 900px) {
+            body {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 36vh;
+            }
+
+            #leaderboard {
+            border-left: none;
+            border-top: 2px solid rgba(0, 0, 0, 0.12);
+            }
+
+            #game-container {
+            height: 100%;
+            }
+
+            #player-score-hud {
+            right: 12px;
+            bottom: 12px;
+            }
+        }
+        </style>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <main id="game-shell">
+        <div id="game-container"></div>
+        <div id="timer-hud">Time: <span id="timer-value">30</span>s</div>
+        <div id="player-score-hud">Score: <span id="player-score-value">0</span></div>
+        </main>
+        <aside id="leaderboard">
+        <h2>Leaderboard</h2>
+        <section id="scorebox"></section>
+        </aside>
+
+        <!-- Socket.IO Client Library - allows real-time communication with the Node.js server -->
+        <script src="/socket.io/socket.io.js"></script>
+        
+        <!-- Socket.IO Connection and Event Handling Script -->
+        <script>
+        // ============================================================================
+        // SOCKET.IO MULTIPLAYER INITIALIZATION
+        // ============================================================================
+        // This script establishes a WebSocket connection to the server and handles
+        // all real-time multiplayer events like player joining, movement, and disconnection
+        
+        // Initialize Socket.IO connection to the server
+        // This creates a persistent WebSocket connection that will work on both localhost and Render
+        const socket = io();
+        
+        // Store data about the current player's connection status
+        let playerData = null;
+        
+        // ============================================================================
+        // EVENT LISTENER: Receive all current players when connecting
+        // ============================================================================
+        // When a new player connects, the server sends back all existing players
+        // This event fires once on initial connection to sync the game state
+        socket.on("currentPlayers", (players) => {
+            playerData = players[socket.id];
+            console.log("Current players:", players);
+            // playerData now contains: { x: position, y: position, colour: hex value }
         });
-      }
+        
+        // ============================================================================
+        // EVENT LISTENER: Another player has joined the game
+        // ============================================================================
+        // This fires when a new opponent connects to the server
+        // You can use this to render the opponent's character on screen
+        socket.on("newPlayer", (data) => {
+            console.log("New player joined:", data);
+            // data contains: { id: socketId, player: { x, y, colour } }
+        });
+        
+        // ============================================================================
+        // EVENT LISTENER: Another player has moved
+        // ============================================================================
+        // This fires whenever the other player's position changes
+        // Use this to update the opponent's character position in real-time
+        socket.on("playerMoved", (data) => {
+            console.log("Player moved:", data);
+            // data contains: { id: socketId, x: newX, y: newY }
+            // TODO: Update opponent's position on screen using this data
+        });
+        
+        // ============================================================================
+        // EVENT LISTENER: A player has disconnected
+        // ============================================================================
+        // This fires when the opponent leaves/closes the game
+        socket.on("playerDisconnected", (playerId) => {
+            console.log("Player disconnected:", playerId);
+            // TODO: Remove the opponent's character from the screen
+        });
+        
+        // ============================================================================
+        // EVENT LISTENER: Game is full (2 players already connected)
+        // ============================================================================
+        // This fires if a 3rd player tries to connect
+        socket.on("gameFull", () => {
+            console.warn("Game is full!");
+            alert("Game is full. Maximum 2 players allowed.");
+        });
+        
+        // ============================================================================
+        // FUNCTION: Update player score in Supabase database
+        // ============================================================================
+        // This function is called from the increaseScore() function in the game loop
+        // It updates the player's score in the Supabase 'NamesAndScores' table
+        // The function handles both new players (insert) and existing players (update)
+        window.increaseTableScore = async function(amount) {
+            // Check if player name was set (should be from URL parameter or localStorage)
+            if (!window.currentPlayerName) {
+            console.warn("Player name not set");
+            return;
+            }
+            
+            try {
+            // Try to find existing score record for this player
+            const { data: existing } = await window.supabase
+                .from('NamesAndScores')
+                .select('*')
+                .eq('Names', window.currentPlayerName)
+                .single();
+            
+            if (existing) {
+                // Player already exists in table - ADD to their existing score
+                await window.supabase
+                .from('NamesAndScores')
+                .update({ Score: existing.Score + amount })
+                .eq('Names', window.currentPlayerName);
+            } else {
+                // First time this player is scoring - CREATE new record
+                await window.supabase
+                .from('NamesAndScores')
+                .insert([{ Names: window.currentPlayerName, Score: amount }]);
+            }
+            } catch (error) {
+            console.error('Error updating score:', error);
+            }
+        };
+        </script>
 
-    }
+        <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        const supabaseUrl = 'https://nelcsssoxnlbfrjqvvnp.supabase.co';
+        const supabaseKey = 'sb_publishable_rFSukQnhifkKajWx8iHFdg_fj3cAC8C';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const playerNameFromUrl = new URLSearchParams(window.location.search).get('playerName');
+        /*getting the name from when they entered it in the index box I have to use it*/
+        const currentPlayerName = playerNameFromUrl || localStorage.getItem('playerName');
+        if (playerNameFromUrl) {
+            localStorage.setItem('playerName', playerNameFromUrl);
+        }
+        
+        // ============================================================================
+        // EXPOSE SUPABASE AND PLAYER NAME TO WINDOW (for Socket.IO script access)
+        // ============================================================================
+        // These variables are defined in this script tag but need to be accessible
+        // from the earlier Socket.IO script tag that runs first
+        // By assigning them to window, they become global and available everywhere
+        // This allows the increaseTableScore() function to access Supabase and playerName
+        window.supabase = supabase;
+        window.currentPlayerName = currentPlayerName;
+        
+        const scoreBox = document.querySelector('#scorebox');
+        const playerScoreValue = document.querySelector('#player-score-value');
+        const timerValue = document.querySelector('#timer-value');
 
-    class BulletBot extends Player /*inherits alot of the player stuff because its easier*/
-    {
-      constructor(username, health, playerspeed, body, head, bulletSpeed , bulletSize = 5, explosive = false)
-      {
-        super(username, health, playerspeed, body);
-        this.head = head;
-        this.bulletSpeed = bulletSpeed;
-        this.bulletSize = bulletSize;
-        this.explosive = explosive;
-      }
+        async function fetchScores() {
+            const { data, error } = await supabase
+            .from('NamesAndScores')
+            .select('*')
+            .order('Score', { ascending: false }); /*get everything from the table and make it so highest score at top*/
 
-      shootBullet(scene, bulletsGroup) {
-        const bullet = new Bullet(scene, this.head.x, this.head.y, this.bulletSize, this.explosive, this.bulletSpeed);
-        bulletsGroup.add(bullet);
-        bullet.fire(this.head.rotation - Phaser.Math.DegToRad(90));
-      }
-    }
+            if (error) {
+            console.error('Error fetching scores:', error);
+            return;
+            }
 
-    class Bullet extends Phaser.GameObjects.Arc
-    {
-      constructor(scene, x, y, size = 5, explosive = false, speed) /*Ill need to be doing this alot, so i made a constructor. might be lots of types of ranged fighters*/
-      {
-        super(scene, x, y, size, 0, 360, false, explosive ? 0xff8800 : 0xff0000);
-        this.size = size;
-        this.explosive = explosive;
-        this.speed = speed;
+            scoreBox.innerHTML = ''; /*clears the box so that it doesn't keep adding the same scores over and over again, it clears it and then adds the new ones*/
 
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
-        this.body.setCircle(size);
-        this.body.setAllowGravity(false);
-      }
+            data.forEach((entry) => { /*copy and paste from the index but this is for the leaderboard */
+            const scoreDiv = document.createElement('div');
+            scoreDiv.className = 'score-entry';
+            scoreDiv.dataset.player = entry.Names;
+            scoreDiv.innerHTML =
+            `
+                <div class="score-entry-content">
+                <p class="score-name">Name: ${entry.Names}</p>
+                <p class="score-value">Score: ${entry.Score}</p>
+                </div>
+            `;
+            scoreBox.appendChild(scoreDiv);
+            });
 
-      fire(angle) /*the angle is the direction the bullet will go, this is used for both the player and the dummy*/
-      {
-        this.body.setVelocity( /*means the bullet will go in the direction of the angle at the speed of the bullet*/
-          Math.cos(angle) * this.speed, // because we need it in vector form not just modular speed
-          Math.sin(angle) * this.speed
+            const currentPlayerDiv = scoreBox.querySelector(`.score-entry[data-player="${currentPlayerName}"]`); /*grabs the name from the index page instead of searching in table bc its faster*/
+            if (currentPlayerDiv) { /*this is the current player score box, this line just means if its found */
+            currentPlayerDiv.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+            currentPlayerDiv.style.fontWeight = '700';
+            }
+        }
+
+        async function increaseTableScoreByAmount(playerName, amount) {
+            if (!playerName) {/*if no name then it wont do anything*/
+            return;
+            }
+
+            const { data: playerRow, error: readError } = await supabase 
+            .from('NamesAndScores')
+            .select('Score')
+            .eq('Names', playerName) /*searches for that 1 entry that has the name of the player whos score is increasing and gets the score from it*/
+            .single(); /*only takes that one*/
+
+            if (readError && readError.code !== 'PGRST116') { /*if theres an error and its not the error for no row found*/
+            return;
+            }
+
+            const currentScore = Number(playerRow?.Score) || 0;
+            const updatedScore = currentScore + amount;
+
+            if (playerRow) { /*if it finds that record*/
+            const { error: updateError } = await supabase
+                .from('NamesAndScores')
+                .update({ Score: updatedScore }) /*make the score the new one*/
+                .eq('Names', playerName);
+
+            if (updateError) { /*all the other errors*/
+                return;
+            }
+            } else {
+            const { error: insertError } = await supabase
+                .from('NamesAndScores')
+                .insert([{ Names: playerName, Score: updatedScore }]);
+
+            if (insertError) {
+                return;
+            }
+            }
+
+            fetchScores(); /*gets the scores again so now we have the actual score*/
+        }
+
+        function watchScoreTable() { /*any change to the table will refresh leaderboard*/
+            supabase
+            .channel('score-table-changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'NamesAndScores' },/*any event*/
+                () => {
+                fetchScores(); /*refreshes the leaderboard whenever there's a change in the table*/
+                }
+            )
+            .subscribe();
+        }
+
+        window.increaseTableScore = (amount) => increaseTableScoreByAmount(currentPlayerName, amount); /*put it outside the function so the html elements can see it and use it*/
+
+        fetchScores();
+        watchScoreTable();
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+
+        <script>
+        const gameContainer = document.getElementById('game-container'); /*setting the game dimensions to use them for other stuff*/
+        const gameWidth = Math.max(gameContainer.clientWidth, 320);
+        const gameHeight = Math.max(gameContainer.clientHeight, 320);
+
+
+        const tableWidth = 2 * gameWidth; /*dimensions of the real table, 2x5, so i wanted each segment to be same as the game window*/
+        const tableHeight = gameHeight * 5;
+
+
+        class Player /*doing OOP for the player because its easier to do the upgrades like this*/
+        {
+        constructor(username, health, playerspeed,body){
+            this.username = username;
+            this.health = health;
+            this.playerspeed = playerspeed;
+            this.body = body;
+        
+        }
+
+        attachTopToBody(head) { /*attach the top part of the player to the body because I made the sprite separate for the aiming*/
+            head.x = this.body.x;
+            head.y = this.body.y;
+        }
+
+        pointTopToCursor(head, cursor, worldWidth, worldHeight) { /*this is the aiming part*/
+            const targetX = Phaser.Math.Clamp(cursor.worldX, 0, worldWidth);
+            const targetY = Phaser.Math.Clamp(cursor.worldY, 0, worldHeight);
+            const angle = Phaser.Math.Angle.Between(head.x, head.y, targetX, targetY);
+            head.rotation = angle + Phaser.Math.DegToRad(90);
+        }
+
+        checkHealth() { /*if dead then the player disappears, later on I'll make a death animation and respawn*/
+            if (this.health <= 0) {
+            this.destroy();
+            }
+        }
+        }
+
+
+        class SwordBot extends Player /*inherits alot of the player stuff because its easier*/
+        {
+        constructor(username, health, playerspeed, body, sword)
+        {
+            super(username, health, playerspeed, body); /*what we get from the player*/
+            this.sword = sword;
+            this.swordHoldDistance = 80;
+            this.deflectRadius = 80; /*will use later , controls how far away sword can deflect bullets*/
+        }
+
+        // Keep sword position and rotation synced with the player's current facing angle.
+        updateSwordPose(aimAngle, facingRotation) {
+        
+            this.sword.x = this.body.x + Math.cos(aimAngle) * this.swordHoldDistance; // x position
+            this.sword.y = this.body.y + Math.sin(aimAngle) * this.swordHoldDistance; // y position
+            this.sword.rotation = facingRotation; // rotate the sword to face the direction the player is aiming
+        }
+
+        deflectBullet(currentbullet, sword) 
+        {
+            const angle = sword.rotation - Phaser.Math.DegToRad(90); // because the sprite is straight up by default it needs to be rotated at a right angle
+            currentbullet.fire(angle); /*sends the bullet flying in the direction of the sword, I can imagine changing this because its hard and clunky to deflect */
+        }
+
+        // On click, deflect any nearby bullets away in the sword direction.
+        deflectNearbyBullets(bulletsGroup) {
+            if (!this.sword) {
+            return;
+            }
+
+            bulletsGroup.children.iterate((bullet) => {
+            if (bullet && Phaser.Math.Distance.Between(bullet.x, bullet.y, this.sword.x, this.sword.y) < this.deflectRadius) { /*if in range*/
+                this.deflectBullet(bullet, this.sword);
+            }
+            });
+        }
+
+        }
+
+        class BulletBot extends Player /*inherits alot of the player stuff because its easier*/
+        {
+        constructor(username, health, playerspeed, body, head, bulletSpeed , bulletSize = 5, explosive = false)
+        {
+            super(username, health, playerspeed, body);
+            this.head = head;
+            this.bulletSpeed = bulletSpeed;
+            this.bulletSize = bulletSize;
+            this.explosive = explosive;
+        }
+
+        shootBullet(scene, bulletsGroup) {
+            const bullet = new Bullet(scene, this.head.x, this.head.y, this.bulletSize, this.explosive, this.bulletSpeed);
+            bulletsGroup.add(bullet);
+            bullet.fire(this.head.rotation - Phaser.Math.DegToRad(90));
+        }
+        }
+
+        class Bullet extends Phaser.GameObjects.Arc
+        {
+        constructor(scene, x, y, size = 5, explosive = false, speed) /*Ill need to be doing this alot, so i made a constructor. might be lots of types of ranged fighters*/
+        {
+            super(scene, x, y, size, 0, 360, false, explosive ? 0xff8800 : 0xff0000);
+            this.size = size;
+            this.explosive = explosive;
+            this.speed = speed;
+
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.body.setCircle(size);
+            this.body.setAllowGravity(false);
+        }
+
+        fire(angle) /*the angle is the direction the bullet will go, this is used for both the player and the dummy*/
+        {
+            this.body.setVelocity( /*means the bullet will go in the direction of the angle at the speed of the bullet*/
+            Math.cos(angle) * this.speed, // because we need it in vector form not just modular speed
+            Math.sin(angle) * this.speed
+            );
+        }
+
+        explode()
+        {
+        
+            //will make the bullet big, I might animate it later if i have time*/
+            this.body.setVelocity(0, 0);
+            this.scene.tweens.add({
+            targets: this,
+            scaleX: 3,
+            scaleY: 3,
+            alpha: 0.2,
+            duration: 120,
+            onComplete: () => { /*after it gets bigger it'll disappear, mimicking explosion*/
+                if (this.active) {
+                this.destroy();
+                }
+            }
+            });
+        }
+
+        isOutOfBounds() /*this is useful to check if its out of the table, will use this alot*/
+        {
+            return this.x < 0 || this.x > tableWidth || this.y < 0 || this.y > tableHeight;
+        }
+        }
+
+
+
+        const config = {
+        type: Phaser.AUTO,
+        width: gameWidth,
+        height: gameHeight,
+        parent: 'game-container',
+        backgroundColor: '#eeeeee',
+        physics: {
+            default: 'arcade',
+            arcade: {
+            gravity: { y: 0 },
+            debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+        };
+
+        let game;
+        try {
+        game = new Phaser.Game(config);
+        } catch (error) {
+        console.error('Phaser startup error:', error);
+        gameContainer.innerHTML = 'Game failed to start. Check console for details.';
+        }
+
+        let playabody;
+        let key;
+        let wasdKeys;
+        let topHead;
+        let cursor;
+        let click;
+        let scene;
+        let bullets;
+        let player;
+        let dummy;
+        let dummyLastShotTime = 0;
+        let swordSprite;
+        let score = 0;
+        let scoreText;
+        let timer = 0;
+        let timeStart = 0;
+        let timeSet = 10;
+        let paused = false;
+        let showedCards = false;
+        let wasMouseDown = false;
+        const cards = ["speedCard", "bulletSpeedCard", "healthCard"];
+
+
+        // Timer state starts fresh when the run begins or after upgrades are picked.
+        function resetTimerState(startTime) {
+        timer = 0;
+        timeStart = startTime;
+        paused = false;
+        showedCards = false;
+        }
+
+        // Timer counts up from the stored start time.
+        function updateTimerState(currentTime) {
+        timer = Math.floor((currentTime - timeStart) / 1000);
+        }
+
+        // Timer HUD shows the remaining seconds and never goes below 0.
+        function updateTimerDisplay() {
+        if (timerValue) {
+            timerValue.textContent = Math.max(0, timeSet - timer);
+        }
+        }
+
+        // Timer expiry pauses gameplay and shows the upgrade cards once.
+        function handleTimerPhase() {
+        if (!checkTimer(timeSet)) {
+            paused = true;
+        }
+
+        if (!paused) {
+            return false;
+        }
+
+        playabody.body.setVelocity(0);
+        if (!showedCards) {
+            offerUpgrades();
+            showedCards = true;
+        }
+
+        return true;
+        }
+
+
+        function preload() {
+        this.load.image("table", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/new2x5table.png");
+        this.load.image("head", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiteRobotHead.png");
+        this.load.image("legClosed", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotlegclosed.png");
+        this.load.image("legOpen", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotlegclosed.png");
+        this.load.image("speedCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/speedUpgradeCard.png");
+        this.load.image("bulletSpeedCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/bulletSpeedCard.png")
+        this.load.image("healthCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/healthUpgradeCard.png");
+        this.load.image("swordCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/swordUpgradeCard.png");
+        this.load.image("swordpng","https://raw.githubusercontent.com/JaredKingLon/NEA/main/sword.png.png");
+        }
+
+
+    
+        function create() 
+        {
+        // Start each run with a fresh timer state.
+        resetTimerState(this.time.now);
+        scene = this;
+
+        /*only calculates stuff thats inside the table and nothing can go out*/
+        this.physics.world.setBounds(0, 0, tableWidth, tableHeight);
+        this.cameras.main.setBounds(0, 0, tableWidth, tableHeight);
+
+        /*making the background the table*/
+        const background = this.add.image(tableWidth / 2, tableHeight / 2, "table");
+        background.setDisplaySize(tableWidth, tableHeight);
+
+        /*making the player body, ill make it easier with a method later on*/
+        playabody = this.add.rectangle(gameWidth / 2, gameHeight / 2, 100, 100, 0x00aa00);
+        playabody.setDepth(1);
+        this.physics.add.existing(playabody);
+        playabody.body.setCollideWorldBounds(true);
+
+        /*camera will follow the player, the 0.12 is how quickly the camera tracks, would be weird if it instantly snapped */
+        this.cameras.main.startFollow(playabody, true, 0.12, 0.12);
+
+        key = this.input.keyboard.createCursorKeys();
+
+        bullets = this.physics.add.group();
+
+        /*again will make this into a method later*/
+        topHead = this.add.image(gameWidth / 2, gameHeight / 2, "head");
+        topHead.setScale(0.25);
+        topHead.setDepth(2);
+        this.physics.add.existing(topHead);
+
+        swordSprite = this.add.image(gameWidth / 2, gameHeight / 2, "swordpng");
+        swordSprite.setScale(2);
+        swordSprite.setDepth(3);
+
+        /*making variables for the inputs so they're easier to write stuff and read for*/
+        cursor = this.input.mousePointer;
+        click = this.input.activePointer;
+        wasdKeys = this.input.keyboard.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.W,
+            left: Phaser.Input.Keyboard.KeyCodes.A,
+            down: Phaser.Input.Keyboard.KeyCodes.S,
+            right: Phaser.Input.Keyboard.KeyCodes.D
+        });
+
+        /*getting the player name from element*/
+        const savedPlayerName = localStorage.getItem('playerName') 
+        player = new SwordBot(savedPlayerName, 100, 250, playabody, swordSprite);
+
+        this.physics.add.overlap(bullets, playabody, (bullet, body) => {
+            if (!bullet.active || !body.active) {
+            return;
+            }
+
+            player.health -= 50;
+
+            if (bullet.explosive) {
+            bullet.explode();
+            } else {
+            bullet.destroy();
+            }
+        }, null, this);
+        
+        const dummyBody = this.add.rectangle(gameWidth / 2 + 220, gameHeight / 2, 100, 100, 0xaa0000);
+        dummyBody.setDepth(1);
+        this.physics.add.existing(dummyBody);
+
+        const dummyHead = this.add.image(gameWidth / 2 + 220, gameHeight / 2, 'head');
+        dummyHead.setScale(0.25);
+        dummyHead.setDepth(2);
+        this.physics.add.existing(dummyHead);
+
+        dummy = new BulletBot('Dummy', 500, 0, dummyBody, dummyHead, 250, 5, false);
+        }
+
+
+        function update(time) {
+        /*every time it updates itll check the timer*/
+        updateTimerDisplay();
+
+        if (handleTimerPhase()) {
+            return;
+        }
+
+        bodyMovement();
+        
+        // ============================================================================
+        // SEND PLAYER POSITION TO SERVER (Multiplayer Synchronization)
+        // ============================================================================
+        // This code runs every frame (60fps) and sends the player's current position
+        // to the Node.js server via Socket.IO
+        // The server then broadcasts this to the opponent so they can see you move
+        // 
+        // typeof socket !== 'undefined' checks if Socket.IO is loaded and available
+        // playabody checks if the player character has been created yet
+        if (typeof socket !== 'undefined' && playabody) {
+            // Emit the 'playerMovement' event with current x,y coordinates
+            // The server receives this and updates the player's position
+            // Then broadcasts to opponent: socket.broadcast.emit('playerMoved', ...)
+            socket.emit('playerMovement', {
+            x: playabody.x,    // Current player X position on the table
+            y: playabody.y     // Current player Y position on the table
+            });
+        }
+        
+        player.attachTopToBody(topHead);
+        const aimAngle = Phaser.Math.Angle.Between(
+            topHead.x,
+            topHead.y,
+            Phaser.Math.Clamp(cursor.worldX, 0, tableWidth),
+            Phaser.Math.Clamp(cursor.worldY, 0, tableHeight)
         );
-      }
 
-      explode()
-      {
-      
-        //will make the bullet big, I might animate it later if i have time*/
-        this.body.setVelocity(0, 0);
-        this.scene.tweens.add({
-          targets: this,
-          scaleX: 3,
-          scaleY: 3,
-          alpha: 0.2,
-          duration: 120,
-          onComplete: () => { /*after it gets bigger it'll disappear, mimicking explosion*/
-            if (this.active) {
-              this.destroy();
+        // Rotate head so the sprite's "forward" direction points at the cursor.
+        topHead.rotation = aimAngle + Phaser.Math.DegToRad(90);
+
+        // auto aiming at the player and shooting
+        dummy.attachTopToBody(dummy.head);
+        const dummyAimAngle = Phaser.Math.Angle.Between(
+            dummy.head.x,
+            dummy.head.y,
+            playabody.x,
+            playabody.y
+        );
+        dummy.head.rotation = dummyAimAngle + Phaser.Math.DegToRad(90);
+        
+
+        /* if its a swordbot itll aim the sword at the cursor, if its a bulletbot itll shoot bullets at the cursor, this is where the polymorphism comes in handy*/
+        if (player instanceof SwordBot) {
+            player.updateSwordPose(aimAngle, topHead.rotation);
+        }
+
+        monitorClick();
+
+        bullets.children.iterate((bullet) => {
+            if (bullet) {
+            checkbulletBounds(bullet);
             }
-          }
         });
-      }
 
-      isOutOfBounds() /*this is useful to check if its out of the table, will use this alot*/
-      {
-        return this.x < 0 || this.x > tableWidth || this.y < 0 || this.y > tableHeight;
-      }
-    }
-
-
-
-    const config = {
-      type: Phaser.AUTO,
-      width: gameWidth,
-      height: gameHeight,
-      parent: 'game-container',
-      backgroundColor: '#eeeeee',
-      physics: {
-        default: 'arcade',
-        arcade: {
-          gravity: { y: 0 },
-          debug: false
+        if (time - dummyLastShotTime >= 700) {
+            dummy.shootBullet(scene, bullets);
+            dummyLastShotTime = time;
         }
-      },
-      scene: {
-        preload: preload,
-        create: create,
-        update: update
-      }
-    };
-
-    let game;
-    try {
-      game = new Phaser.Game(config);
-    } catch (error) {
-      console.error('Phaser startup error:', error);
-      gameContainer.innerHTML = 'Game failed to start. Check console for details.';
-    }
-
-    let playabody;
-    let key;
-    let wasdKeys;
-    let topHead;
-    let cursor;
-    let click;
-    let scene;
-    let bullets;
-    let player;
-    let dummy;
-    let dummyLastShotTime = 0;
-    let swordSprite;
-    let score = 0;
-    let scoreText;
-    let timer = 0;
-    let timeStart = 0;
-    let timeSet = 10;
-    let paused = false;
-    let showedCards = false;
-    let wasMouseDown = false;
-    const cards = ["speedCard", "bulletSpeedCard", "healthCard"];
-
-
-    // Timer state starts fresh when the run begins or after upgrades are picked.
-    function resetTimerState(startTime) {
-      timer = 0;
-      timeStart = startTime;
-      paused = false;
-      showedCards = false;
-    }
-
-    // Timer counts up from the stored start time.
-    function updateTimerState(currentTime) {
-      timer = Math.floor((currentTime - timeStart) / 1000);
-    }
-
-    // Timer HUD shows the remaining seconds and never goes below 0.
-    function updateTimerDisplay() {
-      if (timerValue) {
-        timerValue.textContent = Math.max(0, timeSet - timer);
-      }
-    }
-
-    // Timer expiry pauses gameplay and shows the upgrade cards once.
-    function handleTimerPhase() {
-      if (!checkTimer(timeSet)) {
-        paused = true;
-      }
-
-      if (!paused) {
-        return false;
-      }
-
-      playabody.body.setVelocity(0);
-      if (!showedCards) {
-        offerUpgrades();
-        showedCards = true;
-      }
-
-      return true;
-    }
-
-
-    function preload() {
-      this.load.image("table", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/new2x5table.png");
-      this.load.image("head", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiteRobotHead.png");
-      this.load.image("legClosed", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotlegclosed.png");
-      this.load.image("legOpen", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotlegclosed.png");
-      this.load.image("speedCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/speedUpgradeCard.png");
-      this.load.image("bulletSpeedCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/bulletSpeedCard.png")
-      this.load.image("healthCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/healthUpgradeCard.png");
-      this.load.image("swordCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/swordUpgradeCard.png");
-      this.load.image("swordpng","https://raw.githubusercontent.com/JaredKingLon/NEA/main/sword.png.png");
-    }
-
-
-   
-    function create() 
-    {
-      // Start each run with a fresh timer state.
-      resetTimerState(this.time.now);
-      scene = this;
-
-      /*only calculates stuff thats inside the table and nothing can go out*/
-      this.physics.world.setBounds(0, 0, tableWidth, tableHeight);
-      this.cameras.main.setBounds(0, 0, tableWidth, tableHeight);
-
-      /*making the background the table*/
-      const background = this.add.image(tableWidth / 2, tableHeight / 2, "table");
-      background.setDisplaySize(tableWidth, tableHeight);
-
-      /*making the player body, ill make it easier with a method later on*/
-      playabody = this.add.rectangle(gameWidth / 2, gameHeight / 2, 100, 100, 0x00aa00);
-      playabody.setDepth(1);
-      this.physics.add.existing(playabody);
-      playabody.body.setCollideWorldBounds(true);
-
-      /*camera will follow the player, the 0.12 is how quickly the camera tracks, would be weird if it instantly snapped */
-      this.cameras.main.startFollow(playabody, true, 0.12, 0.12);
-
-      key = this.input.keyboard.createCursorKeys();
-
-      bullets = this.physics.add.group();
-
-      /*again will make this into a method later*/
-      topHead = this.add.image(gameWidth / 2, gameHeight / 2, "head");
-      topHead.setScale(0.25);
-      topHead.setDepth(2);
-      this.physics.add.existing(topHead);
-
-      swordSprite = this.add.image(gameWidth / 2, gameHeight / 2, "swordpng");
-      swordSprite.setScale(2);
-      swordSprite.setDepth(3);
-
-      /*making variables for the inputs so they're easier to write stuff and read for*/
-      cursor = this.input.mousePointer;
-      click = this.input.activePointer;
-      wasdKeys = this.input.keyboard.addKeys({
-        up: Phaser.Input.Keyboard.KeyCodes.W,
-        left: Phaser.Input.Keyboard.KeyCodes.A,
-        down: Phaser.Input.Keyboard.KeyCodes.S,
-        right: Phaser.Input.Keyboard.KeyCodes.D
-      });
-
-      /*getting the player name from element*/
-      const savedPlayerName = localStorage.getItem('playerName') 
-      player = new SwordBot(savedPlayerName, 100, 250, playabody, swordSprite);
-
-      this.physics.add.overlap(bullets, playabody, (bullet, body) => {
-        if (!bullet.active || !body.active) {
-          return;
         }
 
-        player.health -= 50;
 
-        if (bullet.explosive) {
-          bullet.explode();
-        } else {
-          bullet.destroy();
-        }
-      }, null, this);
-      
-      const dummyBody = this.add.rectangle(gameWidth / 2 + 220, gameHeight / 2, 100, 100, 0xaa0000);
-      dummyBody.setDepth(1);
-      this.physics.add.existing(dummyBody);
+        function offerUpgrades()
+        {
 
-      const dummyHead = this.add.image(gameWidth / 2 + 220, gameHeight / 2, 'head');
-      dummyHead.setScale(0.25);
-      dummyHead.setDepth(2);
-      this.physics.add.existing(dummyHead);
+        const cam = scene.cameras.main;
+        const centerX = cam.worldView.centerX; /*getting centre of the camera so the cards are in the middle of the screen*/
+        const centerY = cam.worldView.centerY;
+        const gap = 260;
+        const shownCards = [];
 
-      dummy = new BulletBot('Dummy', 500, 0, dummyBody, dummyHead, 250, 5, false);
-    }
+        /*show 3 cards in a row, all the dimensions are there*/
+        for (let i = 0; i < 3; i++) {
+            const cardType = cards[i % cards.length]; /*cycling through the cards array to get the card type for each card*/
+            const cardX = centerX + ((i - 1) * gap);
+            const card = scene.add.image(cardX, centerY, cardType); /*adding the card to the screen*/
+            card.setDisplaySize(220, 300);
+            card.setDepth(50);
+            card.setInteractive();/*makes it so the cards can be clicked on*/
+            shownCards.push(card); /*adding the card to the array so we can remove them later*/
 
-
-    function update(time) {
-      /*every time it updates itll check the timer*/
-      updateTimerDisplay();
-
-      if (handleTimerPhase()) {
-        return;
-      }
-
-      bodyMovement();
-      player.attachTopToBody(topHead);
-      const aimAngle = Phaser.Math.Angle.Between(
-        topHead.x,
-        topHead.y,
-        Phaser.Math.Clamp(cursor.worldX, 0, tableWidth),
-        Phaser.Math.Clamp(cursor.worldY, 0, tableHeight)
-      );
-
-      // Rotate head so the sprite's "forward" direction points at the cursor.
-      topHead.rotation = aimAngle + Phaser.Math.DegToRad(90);
-
-      // auto aiming at the player and shooting
-      dummy.attachTopToBody(dummy.head);
-      const dummyAimAngle = Phaser.Math.Angle.Between(
-        dummy.head.x,
-        dummy.head.y,
-        playabody.x,
-        playabody.y
-      );
-      dummy.head.rotation = dummyAimAngle + Phaser.Math.DegToRad(90);
-      
-
-      /* if its a swordbot itll aim the sword at the cursor, if its a bulletbot itll shoot bullets at the cursor, this is where the polymorphism comes in handy*/
-      if (player instanceof SwordBot) {
-        player.updateSwordPose(aimAngle, topHead.rotation);
-      }
-
-      monitorClick();
-
-      bullets.children.iterate((bullet) => {
-        if (bullet) {
-          checkbulletBounds(bullet);
-        }
-      });
-
-      if (time - dummyLastShotTime >= 700) {
-        dummy.shootBullet(scene, bullets);
-        dummyLastShotTime = time;
-      }
-    }
-
-
-    function offerUpgrades()
-    {
-
-      const cam = scene.cameras.main;
-      const centerX = cam.worldView.centerX; /*getting centre of the camera so the cards are in the middle of the screen*/
-      const centerY = cam.worldView.centerY;
-      const gap = 260;
-      const shownCards = [];
-
-      /*show 3 cards in a row, all the dimensions are there*/
-      for (let i = 0; i < 3; i++) {
-        const cardType = cards[i % cards.length]; /*cycling through the cards array to get the card type for each card*/
-        const cardX = centerX + ((i - 1) * gap);
-        const card = scene.add.image(cardX, centerY, cardType); /*adding the card to the screen*/
-        card.setDisplaySize(220, 300);
-        card.setDepth(50);
-        card.setInteractive();/*makes it so the cards can be clicked on*/
-        shownCards.push(card); /*adding the card to the array so we can remove them later*/
-
-        card.on('pointerdown', () => { /*when its clicked this will run*/
-          if (cardType === "speedCard") { /*bunch of selection statements to see which card was clicked and apply the upgrade*/
-            player.playerspeed += 200;
-          } else if (cardType === "bulletSpeedCard") {
-            if (player instanceof BulletBot) {
-              player.bulletSpeed += 50;
+            card.on('pointerdown', () => { /*when its clicked this will run*/
+            if (cardType === "speedCard") { /*bunch of selection statements to see which card was clicked and apply the upgrade*/
+                player.playerspeed += 200;
+            } else if (cardType === "bulletSpeedCard") {
+                if (player instanceof BulletBot) {
+                player.bulletSpeed += 50;
+                }
+            } else if (cardType === "healthCard") {
+                player.health += 50;
             }
-          } else if (cardType === "healthCard") {
-            player.health += 50;
-          }
 
-          // Remove all 3 cards and resume the game.
-          shownCards.forEach((c) => c.destroy());
+            // Remove all 3 cards and resume the game.
+            shownCards.forEach((c) => c.destroy());
           resetTimerState(scene.time.now);
         });
       }
