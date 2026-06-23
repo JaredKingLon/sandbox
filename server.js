@@ -19,18 +19,12 @@ io.on("connection", (socket) => {
 
     console.log("A player connected:", socket.id);
 
-    if (Object.keys(players).length >= 2) {
-        socket.emit("gameFull");
-        socket.disconnect();
-        return;
-    }
-
     const playerNumber = Object.keys(players).length;
 
     players[socket.id] = {
         x: playerNumber === 0 ? 150 : 650,
         y: 250,
-        colour: playerColours[playerNumber]
+        colour: playerColours[playerNumber % playerColours.length]
     };
 
     socket.emit("currentPlayers", players);
