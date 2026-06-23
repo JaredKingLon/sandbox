@@ -1,4 +1,3 @@
-
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -69,6 +68,22 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(3000, () => {
-    console.log("Server running at http://localhost:3000");
+const PORT = process.env.PORT || 8765;
+
+server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+        console.error(`Port ${PORT} is already in use. Stop the other process or run with PORT=<newPort>.`);
+        process.exit(1);
+    }
+
+    if (error.code === "EACCES") {
+        console.error(`Permission denied for port ${PORT}. Use a port above 1024 or run with elevated privileges.`);
+        process.exit(1);
+    }
+
+    throw error;
+});
+
+server.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
 });
