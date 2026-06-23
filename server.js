@@ -68,7 +68,7 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 8765;
+const PORT = process.env.PORT || 10000;
 
 server.on("error", (error) => {
     if (error.code === "EADDRINUSE") {
