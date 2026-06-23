@@ -1,771 +1,118 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Phaser Game Template</title>
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-      }
-
-      body {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
-        overflow: hidden;
-      }
-
-      #game-shell {
-        position: relative;
-        height: 100vh;
-        min-width: 0;
-        overflow: hidden;
-      }
-
-      #leaderboard {
-            display: flex;
-            flex-direction: column;
-        gap: 12px;
-        padding: 14px;
-        box-sizing: border-box;
-        border-left: 2px solid rgba(0, 0, 0, 0.12);
-        background: rgba(255, 255, 255, 0.25);
-        overflow-y: auto;
-      }
-
-      #timer-hud {
-        position: absolute;
-        left: 16px;
-        top: 16px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 2px solid rgba(0, 0, 0, 0.22);
-        background: rgba(168, 210, 240, 0.92);
-        color: #1b1b1b;
-        font-size: 1.1rem;
-        font-weight: 700;
-        z-index: 12;
-      }
-
-      #player-score-hud {
-        position: absolute;
-        right: 16px;
-        bottom: 16px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 2px solid rgba(0, 0, 0, 0.22);
-        background: rgba(240, 237, 168, 0.92);
-        color: #1b1b1b;
-        font-size: 1.1rem;
-        font-weight: 700;
-        z-index: 12;
-      }
-
-      #leaderboard h2 {
-        margin: 0;
-        text-align: center;
-        }
-
-      #leaderboard #scorebox {
-        width: 100%;
-      }
-
-        #game-container {
-        width: 100%;
-        height: 100%;
-        min-width: 0;
-        overflow: hidden;
-        }
-
-      @media (max-width: 900px) {
-        body {
-          grid-template-columns: 1fr;
-          grid-template-rows: 1fr 36vh;
-        }
-
-        #leaderboard {
-          border-left: none;
-          border-top: 2px solid rgba(0, 0, 0, 0.12);
-        }
-
-        #game-container {
-          height: 100%;
-        }
-
-        #player-score-hud {
-          right: 12px;
-          bottom: 12px;
-        }
-      }
-    </style>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main id="game-shell">
-      <div id="game-container"></div>
-      <div id="timer-hud">Time: <span id="timer-value">30</span>s</div>
-      <div id="player-score-hud">Score: <span id="player-score-value">0</span></div>
-    </main>
-    <aside id="leaderboard">
-      <h2>Leaderboard</h2>
-      <section id="scorebox"></section>
-    </aside>
+  <main>
+    <h1> Clanker Clash! </h1>
+
+  <section>
+    <div class="image-row">
+      <img src="https://raw.githubusercontent.com/JaredKingLon/NEA/main/yellow%20robot%20index%20square.png" alt="Yellow robot">
+      <img src="https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotindexpage2.png" alt="White robot">
+      <img src="https://raw.githubusercontent.com/JaredKingLon/NEA/main/black%20and%20green%20robot%20index.png" alt="Robot image">
+    </div>
+
+
+  <h2 style ="color:#F0EDA8">Your Name:</h2>
+    <input id="namebox" type="text">
+
+    <h2 style ="color:#F0EDA8">Your Tutor:</h2>
+    <input id="tutorbox" type="text">
+
+    <button id="join" style ="background-color:#F5E590; color:#afcee2;">JOIN</button>
+    <p id = "messageBox">               </p>
+  </section>
+  <section>
+  <button id="check-scores" onclick="window.location.href='scoreDisplay.html'" style="background-color:#F5E590; color:yellow;">CHECK SCORES</button>
+  <button onclick="window.location.href='maingamephaser.html'" > QUICKPLAY</button>
+ </section>
 
     <script type="module">
-      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-      const supabaseUrl = 'https://nelcsssoxnlbfrjqvvnp.supabase.co';
-      const supabaseKey = 'sb_publishable_rFSukQnhifkKajWx8iHFdg_fj3cAC8C';
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const playerNameFromUrl = new URLSearchParams(window.location.search).get('playerName');
-      /*getting the name from when they entered it in the index box I have to use it*/
-      const currentPlayerName = playerNameFromUrl || localStorage.getItem('playerName');
-      if (playerNameFromUrl) {
-        localStorage.setItem('playerName', playerNameFromUrl);
+      /* Doing The Supabase Stuff */
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const supabaseUrl = 'https://nelcsssoxnlbfrjqvvnp.supabase.co';
+    const supabaseKey = 'sb_publishable_rFSukQnhifkKajWx8iHFdg_fj3cAC8C';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const name = document.getElementById('namebox'); /*grabbing stuff from the html */
+    const tutor = document.getElementById('tutorbox');
+    const joinButton = document.getElementById('join');
+     /* Finishing The Supabase constants */
+
+    /* The appendchild basically makes it so that the message showing is made as a 'child'
+      basically it is added below the message box, and the newest child is added below the previous one,
+       so it creates a list of messages that are shown to the user */
+      function showmessage(message) {
+        const messageElement = document.createElement('p'); /*creates a paragraph*/
+        messageElement.textContent = message;
+        document.getElementById('messageBox').appendChild(messageElement); /* referring to my HTML element below JOIN*/
+        setTimeout(() => {            /* This means that it'll remove the message above or the 'first' message after 3 seconds */
+          clearMessage();
+        }, 3000);
       }
-      const scoreBox = document.querySelector('#scorebox');
-      const playerScoreValue = document.querySelector('#player-score-value');
-      const timerValue = document.querySelector('#timer-value');
 
-      async function fetchScores() {
-        const { data, error } = await supabase
-          .from('NamesAndScores')
-          .select('*')
-          .order('Score', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching scores:', error);
-          return;
-        }
-
-        scoreBox.innerHTML = '';
-
-        data.forEach((entry) => {
-          const scoreDiv = document.createElement('div');
-          scoreDiv.className = 'score-entry';
-          scoreDiv.dataset.player = entry.Names;
-          scoreDiv.innerHTML =
-          `
-            <div class="score-entry-content">
-              <p class="score-name">Name: ${entry.Names}</p>
-              <p class="score-value">Score: ${entry.Score}</p>
-            </div>
-          `;
-          scoreBox.appendChild(scoreDiv);
-        });
-
-        const currentPlayerDiv = scoreBox.querySelector(`.score-entry[data-player="${currentPlayerName}"]`);
-        if (currentPlayerDiv) {
-          currentPlayerDiv.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
-          currentPlayerDiv.style.fontWeight = '700';
+      function clearMessage() { 
+        const messageContainer = document.getElementById('messageBox'); /*assigning var to the message*/
+        while (messageContainer.firstChild) { /*checks if there is a message, specifically the first message, if there is it removes it, and keeps doing that until there are no more messages */
+          messageContainer.removeChild(messageContainer.firstChild);
         }
       }
 
-      async function increaseTableScoreByAmount(playerName, amount) {
-        if (!playerName) {
-          console.error('No player name set, cannot update table score.');
-          return;
+      function validateInput() { /*validing inputs like if its too long or empty*/
+        clearMessage();
+        if (name.value.trim() === '') {
+          showmessage('Please enter your name.');
+          return false;
+        }
+        if (tutor.value.trim() === '') {
+          showmessage('Please enter your tutor\'s name.');
+          return false;
+        }
+        if (!isNaN(name.value) || !isNaN(tutor.value)) { /* if it is not not a number, ie. it is a number, then we show an error message */
+          showmessage('Please enter a valid name or tutor.');
+          return false;
         }
 
-        const { data: playerRow, error: readError } = await supabase
-          .from('NamesAndScores')
-          .select('Score')
-          .eq('Names', playerName)
-          .single();
-
-        if (readError && readError.code !== 'PGRST116') {
-          console.error('Error reading current score:', readError);
-          return;
-                                                        }
-
-        const currentScore = Number(playerRow?.Score) || 0;
-        const updatedScore = currentScore + amount;
-
-        if (playerRow) {
-          const { error: updateError } = await supabase
-            .from('NamesAndScores')
-            .update({ Score: updatedScore })
-            .eq('Names', playerName);
-
-          if (updateError) {
-            console.error('Error updating score:', updateError);
-            return;
-          }
-        } else {
-          const { error: insertError } = await supabase
-            .from('NamesAndScores')
-            .insert([{ Names: playerName, Score: updatedScore }]);
-
-          if (insertError) {
-            console.error('Error inserting score:', insertError);
-            return;
-          }
+        if(name.value.length > 12) {
+          showmessage('Your name is too long, please enter a name with less than 12 characters.');
+          return false;
         }
-
-        fetchScores();
-      }
-
-      function watchScoreTable() {
-        supabase
-          .channel('score-table-changes')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'NamesAndScores' },
-            () => {
-              fetchScores();
-            }
-          )
-          .subscribe();
-      }
-
-      window.increaseTableScore = (amount) => increaseTableScoreByAmount(currentPlayerName, amount);
-
-      fetchScores();
-      watchScoreTable();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
-
-    <script>
-    const gameContainer = document.getElementById('game-container');
-    const gameWidth = Math.max(gameContainer.clientWidth, 320);
-    const gameHeight = Math.max(gameContainer.clientHeight, 320);
-
-    if (typeof Phaser === 'undefined') {
-      gameContainer.innerHTML = 'Failed to load Phaser. Please refresh the page.';
-      throw new Error('Phaser failed to load from CDN.');
-    }
-
-    const tableWidth = 2 * gameWidth;
-    const tableHeight = gameHeight * 5;
-
-
-    class Player 
-    {
-      constructor(username, health, playerspeed,body){
-        this.username = username;
-        this.health = health;
-        this.playerspeed = playerspeed;
-        this.body = body;
-      
-      }
-
-      attachTopToBody(head) {
-        head.x = this.body.x;
-        head.y = this.body.y;
-      }
-
-      pointTopToCursor(head, cursor, worldWidth, worldHeight) {
-        const targetX = Phaser.Math.Clamp(cursor.worldX, 0, worldWidth);
-        const targetY = Phaser.Math.Clamp(cursor.worldY, 0, worldHeight);
-        const angle = Phaser.Math.Angle.Between(head.x, head.y, targetX, targetY);
-        head.rotation = angle + Phaser.Math.DegToRad(90);
-      }
-
-      checkHealth() {
-        if (this.health <= 0) {
-          this.destroy();
+        if(tutor.value.length>4) {
+          showmessage('Your tutor name is too long, please enter a tutor name with less than 4 characters.');
+          return false;
         }
+        return true;
       }
-    }
-
-
-    class SwordBot extends Player
-    {
-      constructor(username, health, playerspeed, body, sword)
-      {
-        super(username, health, playerspeed, body);
-        this.sword = sword;
-        this.swordHoldDistance = 80;
-        this.deflectRadius = 80;
-      }
-
-      // Keep sword position and rotation synced with the player's current facing angle.
-      updateSwordPose(aimAngle, facingRotation) {
-        if (!this.sword) {
-          return;
-        }
-
-        this.sword.x = this.body.x + Math.cos(aimAngle) * this.swordHoldDistance; // x position
-        this.sword.y = this.body.y + Math.sin(aimAngle) * this.swordHoldDistance; // y position
-        this.sword.rotation = facingRotation;
-      }
-
-      deflectBullet(currentbullet, sword) 
-      {
-        const angle = sword.rotation - Phaser.Math.DegToRad(90); // because the sprite is straight up by default it needs to be rotated at a right angle
-        currentbullet.fire(angle);
-      }
-
-      // On click, deflect any nearby bullets away in the sword direction.
-      deflectNearbyBullets(bulletsGroup) {
-        if (!this.sword) {
-          return;
-        }
-
-        bulletsGroup.children.iterate((bullet) => {
-          if (bullet && Phaser.Math.Distance.Between(bullet.x, bullet.y, this.sword.x, this.sword.y) < this.deflectRadius) {
-            this.deflectBullet(bullet, this.sword);
-          }
-        });
-      }
-
-    }
-
-    class BulletBot extends Player
-    {
-      constructor(username,health,playerspeed,body,bulletSpeed = 250, bulletSize = 5, explosive = false)
-      {
-        super(username, health, playerspeed, body);
-        this.bulletSpeed = bulletSpeed;
-        this.bulletSize = bulletSize;
-        this.explosive = explosive;
-      }
-
-      shootBullet(scene, head, bulletsGroup) {
-        const bullet = new Bullet(scene, head.x, head.y, this.bulletSize, this.explosive, this.bulletSpeed);
-        bulletsGroup.add(bullet);
-        bullet.fire(head.rotation - Phaser.Math.DegToRad(90));
-      }
-    }
-
-    class Bullet extends Phaser.GameObjects.Arc
-    {
-      constructor(scene, x, y, size = 5, explosive = false, speed)
-      {
-        super(scene, x, y, size, 0, 360, false, explosive ? 0xff8800 : 0xff0000);
-        this.size = size;
-        this.explosive = explosive;
-        this.speed = speed;
-
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
-        this.body.setCircle(size);
-        this.body.setAllowGravity(false);
-      }
-
-      fire(angle)
-      {
-        this.body.setVelocity(
-          Math.cos(angle) * this.speed, // because we need it in vector form not just modular speed
-          Math.sin(angle) * this.speed
-        );
-      }
-
-      explode()
-      {
-        if (!this.active) {
-          return;
-        }
-
-        this.body.setVelocity(0, 0);
-        this.scene.tweens.add({
-          targets: this,
-          scaleX: 3,
-          scaleY: 3,
-          alpha: 0.2,
-          duration: 120,
-          onComplete: () => {
-            if (this.active) {
-              this.destroy();
-            }
-          }
-        });
-      }
-
-      isOutOfBounds()
-      {
-        return this.x < 0 || this.x > tableWidth || this.y < 0 || this.y > tableHeight;
-      }
-    }
-
-
-
-    const config = {
-      type: Phaser.AUTO,
-      width: gameWidth,
-      height: gameHeight,
-      parent: 'game-container',
-      backgroundColor: '#eeeeee',
-      physics: {
-        default: 'arcade',
-        arcade: {
-          gravity: { y: 0 },
-          debug: false
-        }
-      },
-      scene: {
-        preload: preload,
-        create: create,
-        update: update
-      }
-    };
-
-    let game;
-    try {
-      game = new Phaser.Game(config);
-    } catch (error) {
-      console.error('Phaser startup error:', error);
-      gameContainer.innerHTML = 'Game failed to start. Check console for details.';
-    }
-
-    let playabody;
-    let key;
-    let wasdKeys;
-    let topHead;
-    let cursor;
-    let click;
-    let scene;
-    let bullets;
-    let punchingbags;
-    let player;
-    let dummy;
-    let dummyBody;
-    let dummyHead;
-    let dummyLastShotTime = 0;
-    let swordSprite;
-    let score = 0;
-    let scoreText;
-    let timer = 0;
-    let timeStart = 0;
-    let timeSet = 10;
-    let paused = false;
-    let showedCards = false;
-    let wasMouseDown = false;
-    const HEAD_TEXTURE_FORWARD_OFFSET = Phaser.Math.DegToRad(90);
-    const DUMMY_SHOT_COOLDOWN_MS = 700;
-    const BAG_SIZE = 100;
-    const cards = ["speedCard", "bulletSpeedCard", "healthCard"];
-    function preload() {
-      this.load.image("table", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/new2x5table.png");
-      this.load.image("head", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiteRobotHead.png");
-      this.load.image("legClosed", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotlegclosed.png");
-      this.load.image("legOpen", "https://raw.githubusercontent.com/JaredKingLon/NEA/main/whiterobotlegclosed.png");
-      this.load.image("speedCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/speedUpgradeCard.png");
-      this.load.image("bulletSpeedCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/bulletSpeedCard.png")
-      this.load.image("healthCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/healthUpgradeCard.png");
-      this.load.image("swordCard","https://raw.githubusercontent.com/JaredKingLon/NEA/main/swordUpgradeCard.png");
-      this.load.image("swordpng","https://raw.githubusercontent.com/JaredKingLon/NEA/main/sword.png.png");             
-    }
-
-   
-   
-
-
-
-
-
-   
-    function create() 
-    {
-      // Start each run from 0 seconds and unpaused.
-      timer = 0;
-      timeStart = this.time.now;
-      paused = false;
-      showedCards = false;
-      scene = this;
-      const worldWidth = tableWidth;
-      const worldHeight = tableHeight;
-
-      this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
-      this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
-
-      const background = this.add.image(worldWidth / 2, worldHeight / 2, "table");
-      background.setDisplaySize(worldWidth, worldHeight);
-
-      // Track all target bags in one physics group so overlap keeps working after respawns.
-      punchingbags = this.physics.add.staticGroup();
-      spawnPunchingBag();
-
-      playabody = this.add.rectangle(gameWidth / 2, gameHeight / 2, 100, 100, 0x00aa00);
-      playabody.setDepth(1);
-      this.physics.add.existing(playabody);
-      playabody.body.setCollideWorldBounds(true);
-
-      this.cameras.main.startFollow(playabody, true, 0.12, 0.12);
-
-      key = this.input.keyboard.createCursorKeys();
-
-      bullets = this.physics.add.group();
-
-      topHead = this.add.image(gameWidth / 2, gameHeight / 2, "head");
-      topHead.setScale(0.25);
-      topHead.setDepth(2);
-      this.physics.add.existing(topHead);
-
-      dummyBody = this.add.rectangle(gameWidth / 2 + 220, gameHeight / 2, 100, 100, 0xaa0000);
-      dummyBody.setDepth(1);
-      this.physics.add.existing(dummyBody);
-      dummyBody.body.setCollideWorldBounds(true);
-
-      dummyHead = this.add.image(dummyBody.x, dummyBody.y, "head");
-      dummyHead.setScale(0.25);
-      dummyHead.setDepth(2);
-      this.physics.add.existing(dummyHead);
-
-      swordSprite = this.add.image(gameWidth / 2, gameHeight / 2, "swordpng");
-      swordSprite.setScale(2);
-      swordSprite.setDepth(3);
-
-      cursor = this.input.mousePointer;
-      click = this.input.activePointer;
-      wasdKeys = this.input.keyboard.addKeys({
-        up: Phaser.Input.Keyboard.KeyCodes.W,
-        left: Phaser.Input.Keyboard.KeyCodes.A,
-        down: Phaser.Input.Keyboard.KeyCodes.S,
-        right: Phaser.Input.Keyboard.KeyCodes.D
-      });
-
-      const savedPlayerName = localStorage.getItem('playerName') || 'Player';
-      player = new SwordBot(savedPlayerName, 100, 250, playabody, swordSprite);
-
-      // Bullet hits bag -> destroy both, add score, then spawn a new bag after 1 second.
-      this.physics.add.overlap(bullets, punchingbags, async (bullet, bag) => {
-        if (!bullet.active || !bag.active) {
-          return;
-        }
-
-        if (bullet.explosive) {
-          bullet.explode();
-        } else {
-          bullet.destroy();
-        }
-
-        bag.destroy();
-        await increaseScore(10);
-        scene.time.delayedCall(1000, spawnPunchingBag);
-      }, null, this);
-
-      this.physics.add.overlap(bullets, playabody, (bullet, body) => {
-        if (!bullet.active || !body.active) {
-          return;
-        }
-
-        player.health -= 50;
-
-        if (bullet.explosive) {
-          bullet.explode();
-        } else {
-          bullet.destroy();
-        }
-      }, null, this);
-      
-      dummy = new BulletBot('Dummy', 500, 0, dummyBody, 250, 5, false);
-      
-    }
-
-    function update(time) {
-      // timer counts up in seconds.
-      timer = Math.floor((time - timeStart) / 1000);
-
-
-      // Update the countdown display.
-      const timermsg = document.getElementById('timer-value');
-      if (timermsg) {
-        timermsg.textContent = Math.max(0, timeSet - timer);
-      }
-
-      // When the timer runs out, pause gameplay and show upgrades once.
-      if (!checkTimer(timeSet)) {
-        paused = true;
-      }
-
-      if (paused) {
-        playabody.body.setVelocity(0);
-        if (!showedCards) {
-          offerUpgrades();
-          showedCards = true;
-                          }
-        return;
-                  }
-
-      bodyMovement();
-      player.attachTopToBody(topHead);
-      const aimAngle = Phaser.Math.Angle.Between(
-        topHead.x,
-        topHead.y,
-        Phaser.Math.Clamp(cursor.worldX, 0, tableWidth),
-        Phaser.Math.Clamp(cursor.worldY, 0, tableHeight)
-                                               );
-
-      // Rotate head so the sprite's "forward" direction points at the cursor.
-      topHead.rotation = aimAngle + HEAD_TEXTURE_FORWARD_OFFSET;
-
-      // auto aiming at the player and shooting
-      dummy.attachTopToBody(dummyHead);
-      const dummyAimAngle = Phaser.Math.Angle.Between(
-        dummyHead.x,
-        dummyHead.y,
-        playabody.x,
-        playabody.y
-                                                     );
-      dummyHead.rotation = dummyAimAngle + HEAD_TEXTURE_FORWARD_OFFSET;
-      
-
-      // make sure the sword isnt bugging out
-      if (player instanceof SwordBot) {
-        player.updateSwordPose(aimAngle, topHead.rotation);
-                                      }
      
-     monitorClick();
-      keepPunchingBagsInBounds();
-      bullets.children.iterate((bullet) => {
-        if (bullet) {
-          checkbulletBounds(bullet);
-                    }
-                                          });
-
-      if (time - dummyLastShotTime >= DUMMY_SHOT_COOLDOWN_MS) {
-        dummy.shootBullet(scene, dummyHead, bullets);
-        dummyLastShotTime = time;
-                                                              }
-    }
-
-    
-    
-    
-    
-    function offerUpgrades()
-    {
-
-      const cam = scene.cameras.main;
-      const centerX = cam.worldView.centerX;
-      const centerY = cam.worldView.centerY;
-      const gap = 260;
-      const shownCards = [];
-
-      // Show 3 upgrade cards at once in the middle of the screen.
-      for (let i = 0; i < 3; i++) {
-        const cardType = cards[i % cards.length];
-        const cardX = centerX + ((i - 1) * gap);
-        const cardY = centerY;
-        const card = scene.add.image(cardX, cardY, cardType);
-        card.setDisplaySize(220, 300);
-        card.setDepth(50);
-        card.setInteractive();
-        shownCards.push(card);
-
-        card.on('pointerdown', () => {
-          if (cardType === "speedCard") {
-            player.playerspeed += 200;
-          } else if (cardType === "bulletSpeedCard") {
-            if (player instanceof BulletBot) {
-              player.bulletSpeed += 50;
-            }
-          } else if (cardType === "healthCard") {
-            player.health += 50;
-          }
-
-          // Remove all 3 cards and resume the game.
-          shownCards.forEach((c) => c.destroy());
-          paused = false;
-          showedCards = false;
-          timer = 0;
-          timeStart = scene.time.now;
-        });
-      
-    }
-
-   }
-    function bodyMovement() {
-      playabody.body.setVelocity(0);
-
-      if (key.left.isDown || wasdKeys.left.isDown) {
-        playabody.body.setVelocityX(-player.playerspeed);
-                            }
-
-      if (key.right.isDown || wasdKeys.right.isDown) {
-        playabody.body.setVelocityX(player.playerspeed);
-                            }
-
-      if (key.up.isDown || wasdKeys.up.isDown) {
-        playabody.body.setVelocityY(-player.playerspeed);
-                         }
-
-      if (key.down.isDown || wasdKeys.down.isDown) {
-        playabody.body.setVelocityY(player.playerspeed);
+     
+     
+     
+      /* Adding the event listener to the join button so we can see when its clicked*/
+    joinButton.addEventListener('click', async () => {
+      if (!validateInput()) {
+        return; /*if the input is not valid we stop the function here */
       }
-    }
-
-    
-    function monitorClick() {
-      if (click.isDown && !wasMouseDown) {
-        if (player instanceof BulletBot) {
-          player.shootBullet(scene, topHead, bullets);
-        } else if (player instanceof SwordBot) {
-          player.deflectNearbyBullets(bullets);
-        }
-        wasMouseDown = true;
-                                          }
-
-      if (!click.isDown) {
-        wasMouseDown = false;
-                         }
-                          }
-
-    
-
-    function checkbulletBounds(bullet) {
-      if (bullet.isOutOfBounds()) {
-        bullet.destroy();
+      const { data, error } = await supabase
+        .from('NamesAndScores')
+        .insert([  /*when the button is clicked we insert the name and tutor into the database */
+          { Names: name.value, Tutor: tutor.value }
+        ]);
+      /* if there is an error I can log it for debugging and show a message to the user, if not we log the data and show a success message */
+      if (error) {
+        showmessage('Your Name is taken, please try again with a different name.');
+      } else {
+        localStorage.setItem('playerName', name.value.trim());
+        showmessage('You have joined !');
+        setTimeout(() => {
+          window.location.href = `maingamephaser.html?playerName=${encodeURIComponent(name.value.trim())}`;
+        }, 1000);
       }
-    }
-
-    async function increaseScore(amount) {
-      score += amount;
-      if (scoreText) {
-        scoreText.setText('Score: ' + score);
-      }
-      const playerScoreEl = document.getElementById('player-score-value');
-      if (playerScoreEl) {
-        playerScoreEl.textContent = String(score);
-      }
-
-      if (window.increaseTableScore) {
-        await window.increaseTableScore(amount);
-      }
-    }
-
-    function spawnPunchingBag() {
-      // Spawn fully inside the world using half bag size as the safe margin.
-      const half = BAG_SIZE / 2;
-      const x = Phaser.Math.Between(half, tableWidth - half);
-      const y = Phaser.Math.Between(half, tableHeight - half);
-
-      // Create a visible rectangle and register it as a static physics target.
-      const bag = scene.add.rectangle(x, y, BAG_SIZE, BAG_SIZE, 0x000000);
-      scene.physics.add.existing(bag, true);
-      punchingbags.add(bag);
-    }
-
-    function keepPunchingBagsInBounds() {
-      const half = BAG_SIZE / 2;
-
-      punchingbags.getChildren().forEach((bag) => {
-        bag.x = Phaser.Math.Clamp(bag.x, half, tableWidth - half);
-        bag.y = Phaser.Math.Clamp(bag.y, half, tableHeight - half);
-
-        // Static bodies need a manual sync after position changes.
-        if (bag.body && bag.body.updateFromGameObject) {
-          bag.body.updateFromGameObject();
-        }
-      });
-
-
-      
-
-    }
-
-    function checkTimer(timeSet)
-    {
-      if(timer >= timeSet)
-    {
-      return false;
-    }
-    return true;
-    }
+    });
     </script>
+  </main>
 </body>
 </html>
