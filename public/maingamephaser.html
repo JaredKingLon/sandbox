@@ -479,20 +479,27 @@
         }
 
         shootBullet(scene, bulletsGroup) {
-            const bullet = new Bullet(scene, this.head.x, this.head.y, this.bulletSize, this.explosive, this.bulletSpeed);
+            // Spawn the bullet beyond the player's body so it cannot overlap its shooter.
+            const firingAngle = this.head.rotation - Phaser.Math.DegToRad(90);
+            const spawnDistance = 60;
+            const bulletX = this.head.x + Math.cos(firingAngle) * spawnDistance;
+            const bulletY = this.head.y + Math.sin(firingAngle) * spawnDistance;
+            const bullet = new Bullet(scene, bulletX, bulletY, this.bulletSize, this.explosive, this.bulletSpeed, this);
             bulletsGroup.add(bullet);
-            bullet.fire(this.head.rotation - Phaser.Math.DegToRad(90));
+            bullet.fire(firingAngle);
         }
         }
 
         class Bullet extends Phaser.GameObjects.Arc
         {
-        constructor(scene, x, y, size = 5, explosive = false, speed) /*Ill need to be doing this alot, so i made a constructor. might be lots of types of ranged fighters*/
+        constructor(scene, x, y, size = 5, explosive = false, speed, owner = null) /*Ill need to be doing this alot, so i made a constructor. might be lots of types of ranged fighters*/
         {
             super(scene, x, y, size, 0, 360, false, explosive ? 0xff8800 : 0xff0000);
             this.size = size;
             this.explosive = explosive;
             this.speed = speed;
+            this.owner = owner;
+            this.isExploding = false;
 
             scene.add.existing(this);
             scene.physics.add.existing(this);
@@ -510,9 +517,16 @@
 
         explode()
         {
-        
+            // Prevent the overlap callback from starting the same explosion repeatedly.
+            if (this.isExploding) {
+            return;
+            }
+
+            this.isExploding = true;
+
             //will make the bullet big, I might animate it later if i have time*/
             this.body.setVelocity(0, 0);
+            this.body.enable = false;
             this.scene.tweens.add({
             targets: this,
             scaleX: 3,
@@ -687,10 +701,6 @@
         topHead.setDepth(2);
         this.physics.add.existing(topHead);
 
-        swordSprite = this.add.image(gameWidth / 2, gameHeight / 2, "swordpng");
-        swordSprite.setScale(2);
-        swordSprite.setDepth(3);
-
         /*making variables for the inputs so they're easier to write stuff and read for*/
         cursor = this.input.mousePointer;
         click = this.input.activePointer;
@@ -703,10 +713,23 @@
 
         /*getting the player name from element*/
         const savedPlayerName = localStorage.getItem('playerName') 
-        player = new SwordBot(savedPlayerName, 100, 250, playabody, swordSprite);
+        // The player is a BulletBot with explosive bullets enabled.
+        player = new BulletBot(savedPlayerName, 100, 250, playabody, topHead, 250, 5, true);
+
+        // Only SwordBots need a sword sprite; BulletBots do not create one.
+        if (player instanceof SwordBot) {
+            swordSprite = this.add.image(gameWidth / 2, gameHeight / 2, "swordpng");
+            swordSprite.setScale(2);
+            swordSprite.setDepth(3);
+        }
 
         this.physics.add.overlap(bullets, playabody, (bullet, body) => {
             if (!bullet.active || !body.active) {
+            return;
+            }
+
+            // A bullet should not damage the player that fired it.
+            if (bullet.owner === player) {
             return;
             }
 
@@ -767,6 +790,7 @@
         
 
         /* if its a swordbot itll aim the sword at the cursor, if its a bulletbot itll shoot bullets at the cursor, this is where the polymorphism comes in handy*/
+            /*otherwise the sword would be both on screen and trying to run this code, which looks very janky and wastes resources. */
         if (player instanceof SwordBot) {
             player.updateSwordPose(aimAngle, topHead.rotation);
         }
@@ -827,7 +851,7 @@
     function monitorClick() { /*this is just helpful to have in a function, checks if clicked and does appropriate things */
       if (click.isDown && !wasMouseDown) {
         if (player instanceof BulletBot) {
-          player.shootBullet(scene, topHead, bullets);
+                    player.shootBullet(scene, bullets);
         } else if (player instanceof SwordBot) {
           player.deflectNearbyBullets(bullets);
         }
