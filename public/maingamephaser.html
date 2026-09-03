@@ -64,6 +64,23 @@
             z-index: 12;
         }
 
+        #respawn-hud {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 0, 0, 0.22);
+            background: rgba(255, 255, 255, 0.92);
+            color: #1b1b1b;
+            font-size: 1.25rem;
+            font-weight: 700;
+            z-index: 20;
+            pointer-events: none;
+            display: none;
+        }
+
         #leaderboard h2 {
             margin: 0;
             text-align: center;
@@ -108,6 +125,7 @@
         <div id="game-container"></div>
         <div id="timer-hud">Time: <span id="timer-value">30</span>s</div>
         <div id="player-score-hud">Score: <span id="player-score-value">0</span></div>
+        <div id="respawn-hud">Respawning in <span id="respawn-value">3</span>s</div>
         </main>
         <aside id="leaderboard">
         <h2>Leaderboard</h2>
@@ -370,7 +388,37 @@
             this.playerspeed = playerspeed;
             this.body = body;
             this.isWalking = false;
+            this.maxHealth = health;
+            this.isDead = false;
+            this.respawnAt = 0;
         
+        }
+
+        die(currentTime, respawnDelay) {
+            // Store a respawn deadline so the HUD can count down without blocking the game loop.
+            if (this.isDead) {
+            return;
+            }
+
+            this.isDead = true;
+            this.health = 0;
+            this.respawnAt = currentTime + respawnDelay;
+            this.body.body.setVelocity(0);
+            this.body.body.setEnable(false);
+            this.setVisible(false);
+        }
+
+        respawn(x, y) {
+            // Reset the physics body as well as the display position so movement resumes reliably.
+            this.body.body.reset(x, y);
+            this.body.body.setEnable(true);
+            this.health = this.maxHealth;
+            this.isDead = false;
+            this.setVisible(true);
+        }
+
+        setVisible(visible) {
+            this.body.setVisible(visible);
         }
 
         move(cursorKeys, wasdKeys) {
@@ -488,6 +536,12 @@
             bulletsGroup.add(bullet);
             bullet.fire(firingAngle);
         }
+
+        setVisible(visible) {
+            // BulletBots have a separate head display that must hide with the body.
+            super.setVisible(visible);
+            this.head.setVisible(visible);
+        }
         }
 
         class Bullet extends Phaser.GameObjects.Arc
@@ -597,6 +651,7 @@
         let timer = 0;
         let timeStart = 0;
         let timeSet = 10;
+        const respawnDelay = 3000;
         let paused = false;
         let showedCards = false;
         let wasMouseDown = false;
@@ -622,6 +677,36 @@
         if (timerValue) {
             timerValue.textContent = Math.max(0, timeSet - timer);
         }
+        }
+
+        function updateRespawnState(currentTime) {
+        const respawnHud = document.getElementById('respawn-hud');
+        const respawnValue = document.getElementById('respawn-value');
+
+        if (!player || !player.isDead) {
+            if (respawnHud) {
+            respawnHud.style.display = 'none';
+            }
+            return false;
+        }
+
+        const remaining = Math.max(0, player.respawnAt - currentTime);
+        if (respawnHud) {
+            respawnHud.style.display = 'block';
+        }
+        if (respawnValue) {
+            respawnValue.textContent = String(Math.ceil(remaining / 1000));
+        }
+
+        if (remaining === 0) {
+            player.respawn(gameWidth / 2, gameHeight / 2);
+            if (respawnHud) {
+            respawnHud.style.display = 'none';
+            }
+            return false;
+        }
+
+        return true;
         }
 
         // Timer expiry pauses gameplay and shows the upgrade cards once.
@@ -733,7 +818,8 @@
             return;
             }
 
-            player.health -= 50;
+            // A successful bullet hit starts the local player's respawn countdown.
+            player.die(scene.time.now, respawnDelay);
 
             if (bullet.explosive) {
             bullet.explode();
@@ -760,7 +846,15 @@
         updateTimerState(time);
         updateTimerDisplay();
 
+        // Keep respawning separate from upgrade selection so dead players can still pick a card.
+        const isRespawning = updateRespawnState(time);
+
         if (handleTimerPhase()) {
+            return;
+        }
+
+        // Do not move, aim, shoot, or update enemy actions until the player returns.
+        if (isRespawning) {
             return;
         }
 
@@ -790,7 +884,6 @@
         
 
         /* if its a swordbot itll aim the sword at the cursor, if its a bulletbot itll shoot bullets at the cursor, this is where the polymorphism comes in handy*/
-            /*otherwise the sword would be both on screen and trying to run this code, which looks very janky and wastes resources. */
         if (player instanceof SwordBot) {
             player.updateSwordPose(aimAngle, topHead.rotation);
         }
